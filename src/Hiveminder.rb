@@ -53,6 +53,7 @@ module Hiveminder
       comment_res = reddit.comment(response, comment_post[:comment_id])
       unless comment_res["jquery"][10].last.first =~ /RATELIMIT/
         posts.where('id = ?',comment_post[:id]).update(:processed => true,:response_text => response, :posted_response_on => Date.today)
+      reddit.log_out
       end
     end
   end
