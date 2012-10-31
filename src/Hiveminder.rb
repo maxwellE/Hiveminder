@@ -12,8 +12,6 @@ require 'snoo'
 require 'typhoeus'
 
 
-REDDIT_USERNAME = "I_AM_TEH_HIVEMIND"
-REDDIT_PASSWORD = "sweetpea"
 
 DB = Sequel.sqlite('hiveminder.db')
 
@@ -41,12 +39,12 @@ module Hiveminder
     end
   end
 
-  def self.post_comments
+  def self.post_comments(username,password)
     posts = DB[:comments]
     uncommented_posts = posts.where(:processed => false)
     if uncommented_posts.all.size > 0
       reddit = Snoo::Client.new
-      reddit.log_in REDDIT_USERNAME, REDDIT_PASSWORD
+      reddit.log_in username, password
       comment_post = uncommented_posts.first
       noko_res = Nokogiri::XML(Net::HTTP.post_form(URI('http://www.pandorabots.com/pandora/talk-xml'),'botid'=>'b63f3ee30e34cbdd','input'=>comment_post[:comment_text]).body)
       response = noko_res.search('that').first.content
@@ -64,6 +62,6 @@ if $0 == __FILE__
     Hiveminder.grab_comments
   elsif ARGV[0] == "post"
     puts "Posting comment"
-    Hiveminder.post_comments
+    Hiveminder.post_comments(ARGV[1], ARGV[2])
   end
 end
