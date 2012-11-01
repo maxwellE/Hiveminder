@@ -16,7 +16,7 @@ require 'typhoeus'
 DB = Sequel.sqlite('hiveminder.db')
 
 module Hiveminder
-  def self.grab_comments
+  def self.grab_comments(username, password)
     DB.create_table? :comments do
       primary_key :id
       String :comment_id
@@ -26,6 +26,15 @@ module Hiveminder
       Date :posted_response_on
     end
     saved_comments = DB[:comments]
+    reddit = Snoo::Client.new
+    reddit.log_in username, password
+    reddit.get_messages("unread",{:mark=>true})["data"]["children"].each do |unread_comment|
+      unless saved_comments[:comment_id => unread_comment["data"]["name"]]
+        DB[:comments].insert(:comment_id=>unread_comment["data"]["name"], :comment_text => unread_comment["data"]["body"])
+      end
+    end
+    reddit.log_out
+    binding.pry
     top_posts = Oj.load(Typhoeus::Request.get('http://www.reddit.com/.json').body)
     post_ids = top_posts["data"]["children"].map{|x| x["data"]["id"]}
     post_ids.each do |id|
@@ -60,7 +69,7 @@ end
 if $0 == __FILE__
   if ARGV[0] == "grab"
     puts "Grabbing posts"
-    Hiveminder.grab_comments
+    Hiveminder.grab_comments(ARGV[1], ARGV[2])
   elsif ARGV[0] == "post"
     puts "Posting comment"
     Hiveminder.post_comments(ARGV[1], ARGV[2])
