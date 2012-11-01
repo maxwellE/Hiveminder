@@ -34,7 +34,6 @@ module Hiveminder
       end
     end
     reddit.log_out
-    binding.pry
     top_posts = Oj.load(Typhoeus::Request.get('http://www.reddit.com/.json').body)
     post_ids = top_posts["data"]["children"].map{|x| x["data"]["id"]}
     post_ids.each do |id|
