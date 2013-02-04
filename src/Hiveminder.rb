@@ -3,28 +3,16 @@ require "rubygems"
 require "bundler/setup"
 require 'pry'
 require 'oj'
-require 'sequel'
-require "sqlite3"
 require 'nokogiri'
 require 'net/http'
 require 'open-uri'
 require 'snoo'
 require 'typhoeus'
+require 'db_manager'
 
-
-
-DB = Sequel.sqlite('hiveminder.db')
 
 module Hiveminder
   def self.grab_comments(username, password)
-    DB.create_table? :comments do
-      primary_key :id
-      String :comment_id
-      String :comment_text
-      String :response_text
-      Boolean :processed, :default => false
-      Date :posted_response_on
-    end
     saved_comments = DB[:comments]
     reddit = Snoo::Client.new
     reddit.log_in username, password
