@@ -6,10 +6,9 @@ require 'oj'
 require 'nokogiri'
 require 'net/http'
 require 'open-uri'
-require 'snoo'
 require 'typhoeus'
 require 'db_manager'
-
+require 'reddit'
 
 module Hiveminder
   def self.grab_comments(username, password)
