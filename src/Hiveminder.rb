@@ -2,36 +2,38 @@
 require "rubygems"
 require "bundler/setup"
 require 'pry'
-require 'oj'
+
 require 'nokogiri'
 require 'net/http'
 require 'open-uri'
-require 'typhoeus'
-require 'db_manager'
-require 'reddit'
+require_relative 'db_manager'
+require_relative 'reddit'
 
 module Hiveminder
+  extend Reddit
+  extend DbManager
   def self.grab_comments(username, password)
-    saved_comments = DB[:comments]
-    reddit = Snoo::Client.new
-    reddit.log_in username, password
-    reddit.get_messages("unread",{:mark=>true})["data"]["children"].each do |unread_comment|
-      unless saved_comments[:comment_id => unread_comment["data"]["name"]]
-        DB[:comments].insert(:comment_id=>unread_comment["data"]["name"], :comment_text => unread_comment["data"]["body"])
+    create_db_and_table?
+    sign_in(username,password)
+    comment_count = 0
+    get_new_comments.each do |unread_comment|
+      unless db_contains_comment?(unread_comment["data"]["name"])
+        insert_response_comment(unread_comment["data"]["name"],unread_comment["data"]["body"])
+        comment_count +=1
       end
     end
-    reddit.log_out
-    top_posts = Oj.load(Typhoeus::Request.get('http://www.reddit.com/.json').body)
-    post_ids = top_posts["data"]["children"].map{|x| x["data"]["id"]}
-    post_ids.each do |id|
-      comments = Oj.load(Typhoeus::Request.get("http://www.reddit.com/comments/#{id}.json").body)
-      text = comments.last["data"]["children"].first["data"]["body"].gsub(/[^\w ]/,"")
-      name = comments.last["data"]["children"].first["data"]["name"]
+    puts "!!!!   #{comment_count} response comment(s) added.   !!!!"
+    log_out
+    comment_count = 0
+    get_top_posts_ids(5).each do |post_id|
+      comment_text,comment_id = grab_top_post_comment(post_id)
       # next if db contains a processed row with name
-      if saved_comments[:comment_id => name].nil?
-          DB[:comments].insert(:comment_id => name, :comment_text => text)
+      unless db_contains_comment?(comment_id)
+        comment_count +=1
+        insert_post_comment(comment_id,comment_text)
       end
     end
+    puts "!!!!   #{comment_count} top post comment(s) added.   !!!!"
   end
 
   def self.post_comments(username,password)
@@ -59,5 +61,7 @@ if $0 == __FILE__
   elsif ARGV[0] == "post"
     puts "Posting comment"
     Hiveminder.post_comments(ARGV[1], ARGV[2])
+  else
+    puts "Invalid option provided, either use 'grab' or 'posts'."
   end
 end

@@ -1,4 +1,6 @@
 require 'snoo'
+require 'oj'
+require 'typhoeus'
 
 module Reddit
   def sign_in(username,password)
@@ -10,12 +12,20 @@ module Reddit
     @client.log_out
   end
   
-  def get_comments
-    reddit.get_messages("unread",{:mark=>true})["data"]["children"]
+  def get_new_comments
+    @client.get_messages("unread",{:mark=>true})["data"]["children"]
   end
   
-  def get_top_posts(count) 
-    
+  def get_top_posts_ids(count) 
+    top_posts = Oj.load(Typhoeus::Request.get('http://www.reddit.com/.json').body)
+    top_posts["data"]["children"].map{|x| x["data"]["id"]}[0...count]
+  end
+  
+  def grab_top_post_comment(post_id)
+    comments = Oj.load(Typhoeus::Request.get("http://www.reddit.com/comments/#{post_id}.json").body)
+    text = comments.last["data"]["children"].first["data"]["body"].gsub(/[^\w ]/,"").strip.gsub(/  /," ")
+    name = comments.last["data"]["children"].first["data"]["name"]
+    return text,name
   end
 
 end
