@@ -30,7 +30,7 @@ module Reddit
   
   def perform_comment?(response,comment_id)
     begin
-    #  @client.comment(response, comment_id)
+      @client.comment(response, comment_id)
       true
     rescue
       false
