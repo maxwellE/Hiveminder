@@ -23,9 +23,18 @@ module Reddit
   
   def grab_top_post_comment(post_id)
     comments = Oj.load(Typhoeus::Request.get("http://www.reddit.com/comments/#{post_id}.json").body)
-    text = comments.last["data"]["children"].first["data"]["body"].gsub(/[^\w ]/,"").strip.gsub(/  /," ")
+    text = comments.last["data"]["children"].first["data"]["body"].gsub(/[^\w]|http[^ ]*/," ").strip.gsub(/  /," ").strip
     name = comments.last["data"]["children"].first["data"]["name"]
     return text,name
+  end
+  
+  def perform_comment?(response,comment_id)
+    begin
+    #  @client.comment(response, comment_id)
+      true
+    rescue
+      false
+    end
   end
 
 end

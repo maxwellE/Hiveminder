@@ -26,4 +26,17 @@ module DbManager
     DB[:comments].insert(:comment_id=>comment_id, 
      :comment_text => comment_text,:is_response => false)
   end
+  
+  def get_next_response_or_post
+    DB[:comments][:processed => false, :is_response => true] || DB[:comments][:processed => false, :is_response => false]
+  end
+  
+  def save_pandorabot_response(comment_id,response_text)
+    DB[:comments].where('id = ?',comment_id).update(:response_text => response_text)
+  end
+  
+  def mark_comment_as_processed_in_db(comment_id)
+    DB[:comments].where('id = ?',comment_id).update(:processed => true,:posted_response_on => Date.today)
+  end
+  
 end
