@@ -15,6 +15,8 @@ test/version_tmp
 tmp
 *.DS_Store
 hiveminder.db
+*/*.db
+*.db
 
 # YARD artifacts
 .yardoc
