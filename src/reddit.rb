@@ -17,7 +17,7 @@ module Reddit
   end
   
   def get_top_posts_ids(count) 
-    top_posts = Oj.load(Typhoeus::Request.get('http://www.reddit.com/.json').body)
+    top_posts = Oj.load(Typhoeus::Request.get('http://www.reddit.com/new/.json').body)
     top_posts["data"]["children"].map{|x| x["data"]["id"]}[0...count]
   end
   
