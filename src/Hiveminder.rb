@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 require "rubygems"
 require "bundler/setup"
-require 'pry'
 require_relative 'db_manager'
 require_relative 'reddit'
 require_relative 'pandorabots'
@@ -12,16 +11,16 @@ module Hiveminder
   extend DbManager
   def self.grab_comments(username, password)
     create_db_and_table?
-    client = sign_in_and_get_client(username,password)
+    sign_in(username,password)
     comment_count = 0
-    get_new_comments(client).each do |unread_comment|
+    get_new_comments.each do |unread_comment|
       unless db_contains_comment?(unread_comment["data"]["name"])
         insert_response_comment(unread_comment["data"]["name"],unread_comment["data"]["body"])
         comment_count +=1
       end
     end
     puts "!!!!   #{comment_count} response comment(s) added.   !!!!"
-    log_out_client(client)
+    log_out
     comment_count = 0
     get_top_posts_ids(5).each do |post_id|
       comment_text,comment_id = grab_top_post_comment(post_id)
@@ -33,7 +32,6 @@ module Hiveminder
     end
     puts "!!!!   #{comment_count} top post comment(s) added.   !!!!"
     puts "!!!! DONE WITH GRAB !!!!"
-    client.clear_sessions password
   end
 
   def self.post_comments(username,password,api_secret,api_key)
@@ -50,6 +48,7 @@ module Hiveminder
         end
       end
     end
+    log_out
     puts "DONE WITH POST"
   end
 end

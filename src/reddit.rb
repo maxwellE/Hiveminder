@@ -3,18 +3,17 @@ require 'oj'
 require 'typhoeus'
 
 module Reddit
-  def sign_in_and_get_client(username,password)
-    client = Snoo::Client.new
-    client.log_in username, password
-    client
+  def sign_in(username,password)
+    @client = Snoo::Client.new
+    @client.log_in username, password
   end
   
-  def log_out_client(client)
-    client.log_out
+  def log_out
+    @client.log_out
   end
   
-  def get_new_comments(client)
-    client.get_messages("unread",{:mark=>true})["data"]["children"]
+  def get_new_comments
+    @client.get_messages("unread",{:mark=>true})["data"]["children"]
   end
   
   def get_top_posts_ids(count) 
@@ -31,11 +30,7 @@ module Reddit
   
   def perform_comment?(username,password,response,comment_id)
     begin
-      client = Snoo::Client.new
-      client.log_in username, password
-      client.comment(response, comment_id)
-      client.log_out
-      client.clear_sessions password
+      @client.comment(response, comment_id)
       true
     rescue
       puts "Failed to comment"
@@ -44,5 +39,4 @@ module Reddit
       false
     end
   end
-
 end
