@@ -30,7 +30,10 @@ module Reddit
   
   def perform_comment?(username,password,response,comment_id)
     begin
-      @client.comment(response, comment_id)
+      comment_res = @client.comment(response, comment_id)
+      if comment_res["json"]["errors"].first.first == "RATELIMIT"
+        return false 
+      end
       true
     rescue
       puts "Failed to comment"

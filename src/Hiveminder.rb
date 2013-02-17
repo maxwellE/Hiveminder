@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 require "rubygems"
 require "bundler/setup"
+require 'pry'
 require_relative 'db_manager'
 require_relative 'reddit'
 require_relative 'pandorabots'
@@ -42,9 +43,12 @@ module Hiveminder
         unless next_comment[:response_text]
           save_pandorabot_response(next_comment[:id],pandorabot_response)
         end
+        sign_in(username,password)
         if perform_comment?(username,password,pandorabot_response,next_comment[:comment_id])
           puts "Responsed to comment #{next_comment[:comment_text]} with #{pandorabot_response}"
           mark_comment_as_processed_in_db(next_comment[:id])
+        else
+          puts "Hit ratelimit!"
         end
       end
     end
