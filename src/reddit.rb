@@ -31,15 +31,12 @@ module Reddit
   def perform_comment?(username,password,response,comment_id)
     begin
       comment_res = @client.comment(response, comment_id)
-      if comment_res["json"]["errors"].first.first == "RATELIMIT"
-        return false 
-      end
-      true
+      return true
     rescue
       puts "Failed to comment"
       puts $@
       puts $!
-      false
+      return false
     end
   end
 end
